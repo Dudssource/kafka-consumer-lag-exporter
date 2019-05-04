@@ -4,19 +4,40 @@ Simple Java (1.8+) based prometheus exporter for Kafka (0.10+) to exposes consum
 
 ## Usage
 
-```
-# Options:
+### Options
 
+```
  -c (--config) VAL       : Kafka consumer config file
  -d (--debugEnabled)     : Enable debug (default: false)
  -g (--groupRegex) VAL   : Group regex filter (default: .*)
  -p (--port) N           : Prometheus port (default: 8888)
  -s (--schedulePeriod) N : Metrics collection scheduler interval (ms) (default:
                            5000)
-# Example: 
-
-java -Xmx50m -Xms50m -jar kafka-consumerlag-exporter.jar  -c (--config) VAL -d (--debugEnabled) -g (--groupRegex) VAL -p (--port) N -s (--schedulePeriod) N
 ```
+
+### Example (SCRAM-SHA-512 / SASL_SSL)
+
+>>>
+consumer.properties
+```properties
+# list of brokers used for bootstrapping knowledge about the rest of the cluster
+bootstrap.servers=localhost:9092
+
+sasl.mechanism=SCRAM-SHA-512
+security.protocol=SASL_SSL
+ssl.endpoint.identification.algorithm=
+ssl.truststore.location=demo.truststore.jks
+ssl.truststore.password=changeit
+sasl.jaas.config=org.apache.kafka.common.security.scram.ScramLoginModule required \
+  username="admin" \
+  password="admin-secret";
+```
+>>>
+
+```bash
+java -Xmx50m -Xms50m -jar kafka-consumerlag-exporter.jar  -c consumer.properties -p 9999
+```
+
 
 ## Prometheus metrics (Kafka consumer groups)
 
