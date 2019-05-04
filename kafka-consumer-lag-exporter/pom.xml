@@ -111,7 +111,7 @@
 					<execution>
 						<configuration>
 							<mainClass>org.dudssource.consumerlagexporter.ConsumerLagExporter</mainClass>
-							<filename>${project.artifactId}.jar</filename>
+							<filename>${project.artifactId}-${project.version}-dist.jar</filename>
 						</configuration>
 						<goals>
 							<goal>one-jar</goal>
