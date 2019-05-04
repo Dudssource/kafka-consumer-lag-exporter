@@ -84,6 +84,9 @@ public class ConsumerLagExporter extends TimerTask {
 			.labelNames("groupId", "topic", "partition", "host", "clientId")
 			.help("Consumer group lag information per topic").register();
 
+	private static final Gauge KAFKA_TOPIC_OFFSET = Gauge.build().name("kafka_topic_offset")
+			.labelNames("topic", "partition").help("Topic offset per partition").register();
+
 	private static final Gauge COLLECT_METRICS_ELAPSED_TIME = Gauge.build()
 			.name("kafka_consumer_group_exporter_collect_metrics_elapsed_time")
 			.help("Time elaped (ms) to collect metrics from kafka cluster, usefull to adjust the schedule period")
@@ -205,27 +208,31 @@ public class ConsumerLagExporter extends TimerTask {
 						for (Map.Entry<TopicPartition, OffsetAndMetadata> consumerGroupOffsetsEntry : offsetsPerConsumerGroupMap
 								.entrySet()) {
 
-							final TopicPartition partition = consumerGroupOffsetsEntry.getKey();
-							final String topic = partition.topic();
+							final TopicPartition consumerGroupPartition = consumerGroupOffsetsEntry.getKey();
+							final String topic = consumerGroupPartition.topic();
+							final Long offsetPartition = topicPartition.get(consumerGroupPartition);
+
+							// saving topic offset for partition
+							KAFKA_TOPIC_OFFSET.labels(topic, String.valueOf(consumerGroupPartition.partition())).set(offsetPartition);
 
 							// partition LAG
-							final double partitionLag = (topicPartition.get(partition).longValue()
+							final double partitionLag = (offsetPartition.longValue()
 									- consumerGroupOffsetsEntry.getValue().offset());
 
 							// consumer group member info
 							final Optional<MemberDescription> member = getMember(consumerGroupDescription,
-									partition);
+									consumerGroupPartition);
 
 							if (member.isPresent()) {
 								KAFKA_CONSUMER_GROUP_LAG
-										.labels(groupId, topic, String.valueOf(partition.partition()),
+										.labels(groupId, topic, String.valueOf(consumerGroupPartition.partition()),
 												member.get().host(), member.get().clientId())
 										.set(partitionLag);
 							}
 
 							if (!member.isPresent()) {
 								KAFKA_CONSUMER_GROUP_LAG.labels(groupId, topic,
-										String.valueOf(partition.partition()), "-", "-").set(partitionLag);
+										String.valueOf(consumerGroupPartition.partition()), "-", "-").set(partitionLag);
 							}
 						}
 
