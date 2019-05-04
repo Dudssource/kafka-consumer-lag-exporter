@@ -45,6 +45,11 @@ java -Xmx50m -Xms50m -jar kafka-consumerlag-exporter.jar  -c consumer.properties
 # HELP kafka_consumer_group_lag Consumer group lag information per topic
 # TYPE kafka_consumer_group_lag gauge
 kafka_consumer_group_lag{clientId="", groupId="",host="", partition="", topic=""}
+
+# HELP kafka_topic_offset Topic offset per partition
+# TYPE kafka_topic_offset gauge
+kafka_topic_offset{topic="",partition="",}
+
 ```
 
 ## Prometheus metrics (Exporter)
@@ -179,3 +184,7 @@ count(kafka_consumer_group_lag{clientId != "-"}) by(groupId, topic)
 # Number of partitions per topic
 count(count(kafka_consumer_group_lag{clientId != "-", topic=~"$topic"}) without (clientId)) by (topic)
 ```
+
+## Grafana dashboard
+
+We have an example dashboard inside the `grafana` folder, just import it to grafana and customize the datasource.
